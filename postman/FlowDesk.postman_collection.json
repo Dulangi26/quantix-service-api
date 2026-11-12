@@ -1,0 +1,267 @@
+
+{
+  "info": {
+    "name": "FlowDesk API",
+    "description": "Postman collection for testing FlowDesk authentication, service request CRUD, approval workflow, assignment, comments and user access.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://127.0.0.1:8000/api" },
+    { "key": "employeeToken", "value": "" },
+    { "key": "managerToken", "value": "" },
+    { "key": "operationsToken", "value": "" },
+    { "key": "operationsUserId", "value": "" },
+    { "key": "requestId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Employee Login",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "pm.test('Login successful', function () { pm.response.to.have.status(200); });",
+                "const data = pm.response.json();",
+                "pm.collectionVariables.set('employeeToken', data.token);"
+              ]
+            }
+          }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"employee1@flowdesk.test\",\n  \"password\": \"password\"\n}"
+            },
+            "url": "{{baseUrl}}/login"
+          }
+        },
+        {
+          "name": "Manager Login",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "pm.test('Login successful', function () { pm.response.to.have.status(200); });",
+                "pm.collectionVariables.set('managerToken', pm.response.json().token);"
+              ]
+            }
+          }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"manager@flowdesk.test\",\n  \"password\": \"password\"\n}"
+            },
+            "url": "{{baseUrl}}/login"
+          }
+        },
+        {
+          "name": "Operations Login",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "pm.test('Login successful', function () { pm.response.to.have.status(200); });",
+                "const data = pm.response.json();",
+                "pm.collectionVariables.set('operationsToken', data.token);",
+                "pm.collectionVariables.set('operationsUserId', String(data.user.id));"
+              ]
+            }
+          }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"operations@flowdesk.test\",\n  \"password\": \"password\"\n}"
+            },
+            "url": "{{baseUrl}}/login"
+          }
+        },
+        {
+          "name": "Get Authenticated User",
+          "request": {
+            "method": "GET",
+            "header": [{
+              "key": "Authorization",
+              "value": "Bearer {{employeeToken}}"
+            }],
+            "url": "{{baseUrl}}/me"
+          }
+        },
+        {
+          "name": "Logout Employee",
+          "request": {
+            "method": "POST",
+            "header": [{
+              "key": "Authorization",
+              "value": "Bearer {{employeeToken}}"
+            }],
+            "url": "{{baseUrl}}/logout"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Service Requests",
+      "item": [
+        {
+          "name": "Create Request",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "pm.test('Request created', function () { pm.response.to.have.status(201); });",
+                "pm.collectionVariables.set('requestId', String(pm.response.json().data.id));"
+              ]
+            }
+          }],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{employeeToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Postman Test Request\",\n  \"description\": \"A service request created using the FlowDesk Postman collection.\",\n  \"priority\": \"high\"\n}"
+            },
+            "url": "{{baseUrl}}/requests"
+          }
+        },
+        {
+          "name": "List Requests",
+          "request": {
+            "method": "GET",
+            "header": [{
+              "key": "Authorization",
+              "value": "Bearer {{employeeToken}}"
+            }],
+            "url": "{{baseUrl}}/requests?sort_by=created_at&sort_direction=desc"
+          }
+        },
+        {
+          "name": "Get Request",
+          "request": {
+            "method": "GET",
+            "header": [{
+              "key": "Authorization",
+              "value": "Bearer {{employeeToken}}"
+            }],
+            "url": "{{baseUrl}}/requests/{{requestId}}"
+          }
+        },
+        {
+          "name": "Update Request",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{employeeToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Updated Postman Test Request\",\n  \"description\": \"Updated description for the service request.\",\n  \"priority\": \"medium\"\n}"
+            },
+            "url": "{{baseUrl}}/requests/{{requestId}}"
+          }
+        },
+        {
+          "name": "Submit Request",
+          "request": {
+            "method": "POST",
+            "header": [{
+              "key": "Authorization",
+              "value": "Bearer {{employeeToken}}"
+            }],
+            "url": "{{baseUrl}}/requests/{{requestId}}/submit"
+          }
+        },
+        {
+          "name": "Manager Decision - Approve",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{managerToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"decision\": \"approved\",\n  \"comment\": \"Approved for operational processing.\"\n}"
+            },
+            "url": "{{baseUrl}}/requests/{{requestId}}/decision"
+          }
+        },
+        {
+          "name": "Assign Request",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{operationsToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"assigned_to\": {{operationsUserId}},\n  \"comment\": \"Assigned to the Operations team.\"\n}"
+            },
+            "url": "{{baseUrl}}/requests/{{requestId}}/assign"
+          }
+        },
+        {
+          "name": "Start Request",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{operationsToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"in_progress\",\n  \"comment\": \"Work has started.\"\n}"
+            },
+            "url": "{{baseUrl}}/requests/{{requestId}}/status"
+          }
+        },
+        {
+          "name": "Complete Request",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{operationsToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"completed\",\n  \"comment\": \"The request has been completed.\"\n}"
+            },
+            "url": "{{baseUrl}}/requests/{{requestId}}/status"
+          }
+        },
+        {
+          "name": "Add Comment",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{employeeToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"comment\": \"Thank you for processing my request.\"\n}"
+            },
+            "url": "{{baseUrl}}/requests/{{requestId}}/comments"
+          }
+        }
+      ]
+    }
+  ]
+}

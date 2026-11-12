@@ -1,66 +1,392 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# FlowDesk – Service Request & Approval API
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A role-based RESTful API built with Laravel for managing internal employee service requests through a structured approval and fulfilment workflow.
 
-## About Laravel
+## 1. Overview
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+FlowDesk allows employees to submit service requests, managers to review requests from their direct reports, and Operations users to manage approved requests through assignment and completion.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+### Main Features
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- Token-based authentication using Laravel Sanctum.
+- Role-based access control for Employees, Managers and Operations.
+- Create, view, update and track service requests.
+- Manager approval, rejection and return workflows.
+- Operations assignment and request status management.
+- Comments and request activity audit trail.
+- Database-backed queued notifications.
+- Request filtering, searching, sorting and pagination.
+- Input validation and consistent JSON API responses.
 
-## Learning Laravel
+## 2. Technology Stack
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+| Component | Technology |
+|---|---|
+| Backend | PHP 8.2+, Laravel 12 |
+| Database | MySQL |
+| Authentication | Laravel Sanctum |
+| ORM | Eloquent |
+| Validation | Laravel Form Requests |
+| API Responses | Laravel API Resources |
+| Background Jobs | Laravel Queue |
+| Testing | PHPUnit |
+| Code Formatting | Laravel Pint |
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+## 3. User Roles and Permissions
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+| Role | Permissions |
+|---|---|
+| Employee | Create requests, edit own Draft or Returned requests, submit requests, view own requests and add comments. |
+| Manager | Review requests submitted by direct reports, approve, reject or return requests, and add comments. |
+| Operations | Assign approved requests, start processing, complete requests and add comments to accessible requests. |
 
-## Laravel Sponsors
+Access is restricted according to user roles and request ownership or assignment.
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## 4. Request Workflow
 
-### Premium Partners
+The supported request lifecycle is:
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+`Draft → Submitted → Approved → Assigned → In Progress → Completed`
 
-## Contributing
+Additional decision paths:
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+- Submitted → Returned → Submitted
+- Submitted → Rejected
 
-## Code of Conduct
+Rejected and Completed requests are final states and cannot be reopened.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Every status transition records the previous status, new status, acting user, timestamp and optional comment in the request activity history.
 
-## Security Vulnerabilities
+## 5. Requirements
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+- PHP 8.2 or later
+- Composer
+- MySQL 8 or compatible MySQL version
+- Git
 
-## License
+## 6. Installation and Setup
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+### Step 1 – Clone the repository
+
+```bash
+git clone https://github.com/Dulangi26/quantix-service-api.git
+cd quantix-service-api
+```
+
+### Step 2 – Install dependencies
+
+```bash
+composer install
+```
+
+### Step 3 – Configure environment variables
+
+Copy the example environment file:
+
+**Windows PowerShell:**
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Update the database configuration in `.env`:
+
+```env
+APP_NAME=FlowDesk
+APP_ENV=local
+APP_DEBUG=true
+APP_URL=http://127.0.0.1:8000
+
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=quantix_service_api
+DB_USERNAME=your_database_username
+DB_PASSWORD=your_database_password
+
+QUEUE_CONNECTION=database
+```
+
+Create a MySQL database named `quantix_service_api` before running the migrations.
+
+### Step 4 – Generate application key
+
+```bash
+php artisan key:generate
+```
+
+### Step 5 – Run migrations and seed demo data
+
+```bash
+php artisan migrate --seed
+```
+
+This creates the required database tables and sample users and service requests.
+
+### Step 6 – Start the API server
+
+```bash
+php artisan serve
+```
+
+The API will be available at:
+
+`http://127.0.0.1:8000`
+
+### Step 7 – Start the queue worker
+
+In a separate terminal:
+
+```bash
+php artisan queue:work database
+```
+
+The worker processes queued database notifications.
+
+## 7. Demo Accounts
+
+The database seeder creates the following accounts for testing:
+
+| Role | Email | Password |
+|---|---|---|
+| Manager | manager@flowdesk.test | password |
+| Employee | employee1@flowdesk.test | password |
+| Employee | employee2@flowdesk.test | password |
+| Employee | employee3@flowdesk.test | password |
+| Operations | operations@flowdesk.test | password |
+
+**Note:** These are development-only credentials. Do not use them in production.
+
+## 8. API Endpoints
+
+All endpoints use the `/api` prefix.
+
+### Authentication
+
+| Method | Endpoint | Description | Authentication |
+|---|---|---|---|
+| POST | `/api/login` | Authenticate and obtain an access token | No |
+| GET | `/api/me` | Retrieve authenticated user details | Yes |
+| POST | `/api/logout` | Revoke current access token | Yes |
+
+### Service Requests
+
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/api/requests` | Create a service request |
+| GET | `/api/requests` | List accessible service requests |
+| GET | `/api/requests/{id}` | Retrieve a specific request |
+| PUT | `/api/requests/{id}` | Update an eligible request |
+
+### Workflow
+
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/api/requests/{id}/submit` | Submit a Draft or Returned request |
+| POST | `/api/requests/{id}/decision` | Approve, reject or return a submitted request |
+| POST | `/api/requests/{id}/assign` | Assign an approved request |
+| POST | `/api/requests/{id}/status` | Update an assigned request's processing status |
+| POST | `/api/requests/{id}/comments` | Add a comment to a request |
+
+### Request Filtering and Sorting
+
+The request listing endpoint supports:
+
+- `status` – Filter by request status.
+- `priority` – Filter by priority.
+- `search` – Search request information.
+- `sort_by` – Sort by supported fields such as `created_at`, `title` or `priority`.
+- `sort_direction` – `asc` or `desc`.
+- Pagination – Results are returned in paginated form.
+
+Example:
+
+```http
+GET /api/requests?status=submitted&priority=high&sort_by=created_at&sort_direction=desc
+```
+
+## 9. Example API Requests
+
+### Login
+
+```http
+POST /api/login
+Content-Type: application/json
+```
+
+```json
+{
+    "email": "employee1@flowdesk.test",
+    "password": "password"
+}
+```
+
+### Create a Request
+
+```http
+POST /api/requests
+Authorization: Bearer YOUR_ACCESS_TOKEN
+Content-Type: application/json
+```
+
+```json
+{
+    "title": "Office Laptop Request",
+    "description": "Requesting a laptop for development work.",
+    "priority": "high"
+}
+```
+
+### Submit a Request
+
+```http
+POST /api/requests/1/submit
+Authorization: Bearer YOUR_ACCESS_TOKEN
+```
+
+### Manager Decision
+
+```http
+POST /api/requests/1/decision
+Authorization: Bearer YOUR_ACCESS_TOKEN
+Content-Type: application/json
+```
+
+```json
+{
+    "decision": "approved",
+    "comment": "Approved for operational processing."
+}
+```
+
+### Assign a Request
+
+```http
+POST /api/requests/1/assign
+Authorization: Bearer YOUR_ACCESS_TOKEN
+Content-Type: application/json
+```
+
+```json
+{
+    "assigned_to": 5,
+    "comment": "Assigned to the Operations team."
+}
+```
+
+### Update Request Status
+
+```http
+POST /api/requests/1/status
+Authorization: Bearer YOUR_ACCESS_TOKEN
+Content-Type: application/json
+```
+
+```json
+{
+    "status": "in_progress",
+    "comment": "Work has started."
+}
+```
+
+### Add a Comment
+
+```http
+POST /api/requests/1/comments
+Authorization: Bearer YOUR_ACCESS_TOKEN
+Content-Type: application/json
+```
+
+```json
+{
+    "comment": "Please provide an update on this request."
+}
+```
+
+Replace the example request ID and access token with values from your database and login response.
+
+## 10. Database Design
+
+The main database entities are:
+
+- **users** – User accounts, roles and manager relationships.
+- **service_requests** – Request details, ownership, assignment and workflow status.
+- **comments** – Comments associated with requests and users.
+- **request_activities** – Audit history of status changes and request actions.
+- **notifications** – Database-backed notifications.
+- **personal_access_tokens** – Sanctum authentication tokens.
+
+Foreign keys and indexes support data integrity and common request queries.
+
+## 11. Architecture and Code Organization
+
+The application follows Laravel's MVC-oriented structure with dedicated service, validation, authorization and response layers.
+
+| Directory | Responsibility |
+|---|---|
+| `app/Enums` | User roles and request statuses |
+| `app/Models` | Eloquent models and relationships |
+| `app/Http/Controllers/Api` | API request handling |
+| `app/Http/Requests` | Input validation |
+| `app/Http/Resources` | Consistent JSON response formatting |
+| `app/Policies` | Role and resource authorization |
+| `app/Services` | Request workflow and business rules |
+| `app/Notifications` | Queued request status notifications |
+| `database/migrations` | Database schema |
+| `database/factories` | Test data factories |
+| `database/seeders` | Demo data |
+| `tests` | Automated tests |
+
+The `RequestWorkflowService` centralizes status transitions and audit recording. Database transactions and row locking help maintain workflow consistency.
+
+## 12. Testing
+
+Run the automated test suite:
+
+```bash
+php artisan test
+```
+
+Run the code formatting check:
+
+```bash
+vendor/bin/pint --test
+```
+
+The implemented feature tests cover:
+
+- Employee request submission.
+- Manager approval of direct-report requests.
+- Prevention of unauthorized employee access.
+- Prevention of reopening completed requests.
+
+## 13. Error Handling
+
+The API uses appropriate HTTP status codes, including:
+
+| Status | Meaning |
+|---|---|
+| 200 | Successful request |
+| 201 | Resource created |
+| 401 | Unauthenticated or invalid credentials |
+| 403 | Forbidden action |
+| 404 | Resource not found |
+| 422 | Validation error or invalid workflow transition |
+
+Validation and workflow errors are returned as JSON responses.
+
+## 14. Security Considerations
+
+- Sanctum Bearer token authentication.
+- Role-based authorization and resource policies.
+- Password hashing.
+- Request input validation.
+- Protected API routes.
+- Database constraints and transactional workflow updates.
+- Environment variables for sensitive configuration.
+
+Never commit the `.env` file or production credentials.
+
+## 15. License
+
+This project was developed as a software engineering assignment. Laravel is distributed under the MIT License.
